@@ -1,20 +1,30 @@
 const express = require("express");
 const mongoose = require("mongoose");
 
+// Load middleware
+const bodyParser = require("body-parser");
+
+// Load our routes
 const posts = require("./routes/api/posts");
 const profile = require("./routes/api/profile");
 const users = require("./routes/api/users");
 
 // Connect to MongoDB via Mongoose using the URI in our config.
 const db = require("./config/keys").mongoURI;
+
 mongoose
   .connect(db)
   .then(() => console.log("MongoDB connected."))
   .catch(err => console.error(err));
 
-// Set up our server app with routes.
+// Create our server app
 const app = express();
 
+// Use middleware
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+
+// Set up our routes
 app.get("/", (req, res) => res.send("hello, world"));
 
 app.use("/api/posts", posts);

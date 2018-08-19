@@ -42,3 +42,5 @@ package-lock.json
 build
 dist
 
+# James' scratch javascript
+.scratch.js
