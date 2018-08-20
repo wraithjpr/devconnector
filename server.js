@@ -7,7 +7,7 @@ const passport = require('passport');
 
 // Load our routes
 const posts = require('./routes/api/posts');
-const profile = require('./routes/api/profile');
+const profiles = require('./routes/api/profiles');
 const users = require('./routes/api/users');
 
 // Connect to MongoDB via Mongoose using the URI in our config.
@@ -34,7 +34,7 @@ app.use(bodyParser.json());
 app.get('/', (req, res) => res.send('hello, world'));
 
 app.use('/api/posts', posts);
-app.use('/api/profile', profile);
+app.use('/api/profiles', profiles);
 app.use('/api/users', users);
 
 // Start our server app
