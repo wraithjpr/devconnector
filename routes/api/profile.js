@@ -34,16 +34,94 @@ router.get(
         }
 
         // Return the profile
-        res.json(profile);
+        return res.json(profile);
       })
       .catch(err => {
         // Returns 500 Internal Server Error
-        console.error(err);
+        console.log(err);
         errors.noProfile = "Unable to fetch user's profile";
         return res.status(500).json(errors);
       });
   }
 );
+
+// @route   GET api/profile/all
+// @desc    Get a list of all profiles
+// @access  Public
+router.get('/all', (req, res) => {
+  const errors = {};
+
+  Profile.find()
+    .populate('user', ['name', 'avatar'])
+    .then(profiles => {
+      // Check list of profiles exists. Returns 404 Not Found
+      if (!profiles) {
+        errors.noProfile = 'There are no profiles';
+        return res.status(404).json(errors);
+      }
+
+      // Return the list of profiles
+      return res.json(profiles);
+    })
+    .catch(err => {
+      // Returns 500 Internal Server Error
+      console.log(err);
+      errors.noProfile = 'Unable to fetch list of profiles';
+      return res.status(500).json(errors);
+    });
+});
+
+// @route   GET api/profile/handle/:handle
+// @desc    Get a profile by handle
+// @access  Public
+router.get('/handle/:handle', (req, res) => {
+  const errors = {};
+
+  Profile.findOne({ handle: req.params.handle })
+    .populate('user', ['name', 'avatar'])
+    .then(profile => {
+      // Check profile exists. Returns 404 Not Found
+      if (!profile) {
+        errors.noProfile = 'There is no profile for this user';
+        return res.status(404).json(errors);
+      }
+
+      // Return the profile
+      return res.json(profile);
+    })
+    .catch(err => {
+      // Returns 500 Internal Server Error
+      console.log(err);
+      errors.noProfile = "Unable to fetch user's profile";
+      return res.status(500).json(errors);
+    });
+});
+
+// @route   GET api/profile/user/:user_id
+// @desc    Get a profile by user id
+// @access  Public
+router.get('/user/:user_id', (req, res) => {
+  const errors = {};
+
+  Profile.findOne({ user: req.params.user_id })
+    .populate('user', ['name', 'avatar'])
+    .then(profile => {
+      // Check profile exists. Returns 404 Not Found
+      if (!profile) {
+        errors.noProfile = 'There is no profile for this user';
+        return res.status(404).json(errors);
+      }
+
+      // Return the profile
+      return res.json(profile);
+    })
+    .catch(err => {
+      // Returns 500 Internal Server Error
+      console.log(err);
+      errors.noProfile = "Unable to fetch user's profile";
+      return res.status(500).json(errors);
+    });
+});
 
 // @route   POST api/profile
 // @desc    Create or edit a user profile
@@ -96,7 +174,7 @@ router.post(
             .then(profile => res.json(profile))
             .catch(err => {
               // Returns 500 Internal Server Error
-              console.error(err);
+              console.log(err);
               errors.noProfile = "Unable to update user's profile";
               return res.status(500).json(errors);
             });
@@ -118,7 +196,7 @@ router.post(
                   .then(profile => res.json(profile))
                   .catch(err => {
                     // Returns 500 Internal Server Error
-                    console.error(err);
+                    console.log(err);
                     errors.noProfile = "Unable to create user's profile";
                     return res.status(500).json(errors);
                   });
@@ -126,7 +204,7 @@ router.post(
             })
             .catch(err => {
               // Returns 500 Internal Server Error
-              console.error(err);
+              console.log(err);
               errors.noProfile = 'Unable to check handle is available';
               return res.status(500).json(errors);
             });
@@ -134,7 +212,7 @@ router.post(
       })
       .catch(err => {
         // Returns 500 Internal Server Error
-        console.error(err);
+        console.log(err);
         errors.noProfile = "Unable to create user's profile";
         return res.status(500).json(errors);
       });
