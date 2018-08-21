@@ -4,6 +4,8 @@ const passport = require('passport');
 
 // Load input validation modules
 const validateProfileInput = require('../../validation/profile');
+const validateExperienceInput = require('../../validation/experience');
+const validateEducationInput = require('../../validation/education');
 
 // Load models
 const Profile = require('../../models/Profile');
@@ -140,6 +142,7 @@ router.post(
 
     // Construct the profile
     const profileFields = { user: req.user.id };
+
     if (data.handle) profileFields.handle = data.handle;
     if (data.company) profileFields.company = data.company;
     if (data.website) profileFields.website = data.website;
@@ -155,6 +158,7 @@ router.post(
 
     // Social
     profileFields.social = {};
+
     if (data.youtube) profileFields.social.youtube = data.youtube;
     if (data.twitter) profileFields.social.twitter = data.twitter;
     if (data.facebook) profileFields.social.facebook = data.facebook;
@@ -214,6 +218,121 @@ router.post(
         // Returns 500 Internal Server Error
         console.log(err);
         errors.noProfile = "Unable to create user's profile";
+        return res.status(500).json(errors);
+      });
+  }
+);
+
+// @route   POST api/profile/experience
+// @desc    Add experience to a user profile
+// @access  Private
+router.post(
+  '/experience',
+  passport.authenticate('jwt', { session: false }),
+  (req, res) => {
+    // Validate input
+    let { isValid, data, errors } = validateExperienceInput(req.body);
+
+    // Check validation, returns 400 Bad Request
+    if (!isValid) {
+      return res.status(400).json(errors);
+    }
+
+    // Construct the profile
+    const experienceFields = {};
+
+    if (data.title) experienceFields.title = data.title;
+    if (data.company) experienceFields.company = data.company;
+    if (data.location) experienceFields.location = data.location;
+    if (data.from) experienceFields.from = data.from;
+    if (data.to) experienceFields.to = data.to;
+    if (data.current) experienceFields.current = data.current;
+    if (data.description) experienceFields.description = data.description;
+
+    // Find profile by user id
+    Profile.findOne({ user: req.user.id })
+      .then(profile => {
+        // Check that profile is found
+        if (profile) {
+          // Add to experience array
+          profile.experience.unshift(experienceFields);
+          profile
+            .save()
+            .then(profile => res.json(profile))
+            .catch(err => {
+              // Returns 500 Internal Server Error
+              console.log(err);
+              errors.profile = "Unable to add experience to user's profile";
+              return res.status(500).json(errors);
+            });
+        } else {
+          // Returns 404 Not Found
+          errors.noProfile = "Unable to find user's profile";
+          return res.status(404).json(errors);
+        }
+      })
+      .catch(err => {
+        // Returns 500 Internal Server Error
+        console.log(err);
+        errors.noProfile = "Unable to find user's profile";
+        return res.status(500).json(errors);
+      });
+  }
+);
+
+// @route   POST api/profile/education
+// @desc    Add education to a user profile
+// @access  Private
+router.post(
+  '/education',
+  passport.authenticate('jwt', { session: false }),
+  (req, res) => {
+    // Validate input
+    let { isValid, data, errors } = validateEducationInput(req.body);
+
+    // Check validation, returns 400 Bad Request
+    if (!isValid) {
+      return res.status(400).json(errors);
+    }
+
+    // Construct the profile
+    const educationFields = {};
+
+    if (data.school) educationFields.school = data.school;
+    if (data.degree) educationFields.degree = data.degree;
+    if (data.fieldOfStudy) educationFields.fieldOfStudy = data.fieldOfStudy;
+    if (data.location) educationFields.location = data.location;
+    if (data.from) educationFields.from = data.from;
+    if (data.to) educationFields.to = data.to;
+    if (data.current) educationFields.current = data.current;
+    if (data.description) educationFields.description = data.description;
+
+    // Find profile by user id
+    Profile.findOne({ user: req.user.id })
+      .then(profile => {
+        // Check that profile is found
+        if (profile) {
+          // Add to education array
+          profile.education.unshift(educationFields);
+          profile
+            .save()
+            .then(profile => res.json(profile))
+            .catch(err => {
+              // Returns 500 Internal Server Error
+              console.log(err);
+              errors.profile = "Unable to add education to user's profile";
+              return res.status(500).json(errors);
+            });
+        } else {
+          // Returns 404 Not Found
+          errors.noProfile = "Unable to find user's profile";
+          return res.status(404).json(errors);
+        }
+      })
+      .catch(err => {
+        // Returns 500 Internal Server Error
+        console.log(err);
+        errors.noProfile = "Unable to find user's profile";
         return res.status(500).json(errors);
       });
   }
