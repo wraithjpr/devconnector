@@ -13,6 +13,7 @@ const validateEducationInput = require('../../validation/education');
 
 // Load models
 const Profile = require('../../models/Profile');
+const User = require('../../models/User');
 
 // Error handler function factory
 function makeResponseErrorHandler(msg, httpCode, log) {
@@ -378,6 +379,24 @@ router.delete(
           errors.noProfile = "Unable to find user's profile";
           return res.status(404).json(errors);
         }
+      })
+      .catch(makeFatalErrorHandler(res));
+  }
+);
+
+// @route   DELETE api/profile
+// @desc    Delete the current user's profile together with the user as well.
+// @access  Private
+router.delete(
+  '/',
+  passport.authenticate('jwt', { session: false }),
+  (req, res) => {
+    // Remove Profile first, then User
+    Profile.findOneAndRemove({ user: req.user.id })
+      .then(() => {
+        User.findOneAndRemove({ _id: req.user.id })
+          .then(() => res.json({ success: true }))
+          .catch(makeFatalErrorHandler(res));
       })
       .catch(makeFatalErrorHandler(res));
   }
