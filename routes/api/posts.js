@@ -118,4 +118,92 @@ router.delete(
   }
 );
 
+// @route   POST api/posts/like/:id
+// @desc    Like a post by id
+// @access  Private
+router.post(
+  '/like/:id',
+  passport.authenticate('jwt', { session: false }),
+  (req, res) => {
+    Post.findById(req.params.id)
+      .then(post => {
+        // Check post exists. Returns 404 Not Found
+        if (post) {
+          // Check the users don't match - users cannot like their own posts. Returns 403 Forbidden.
+          if (req.user.id !== post.user.toString()) {
+            // Check that the user has not liked this post already... like it once only, please!
+            if (
+              post.likes.filter(like => like.user.toString() === req.user.id)
+                .length === 0
+            ) {
+              // Record the like
+              post.likes.push({ user: req.user.id });
+
+              // Save the post
+              post
+                .save()
+                .then(post => res.json(post))
+                .catch(makeFatalErrorHandler(res));
+            } else {
+              return res.status(403).json({
+                message: 'You already liked this post.'
+              });
+            }
+          } else {
+            return res.status(403).json({
+              message:
+                "Permission denied. You may like only others' posts, not your own."
+            });
+          }
+        } else {
+          return res
+            .status(404)
+            .json({ message: 'That post could not be found' });
+        }
+      })
+      .catch(makeFatalErrorHandler(res));
+  }
+);
+
+// @route   POST api/posts/unlike/:id
+// @desc    Unlike a post by id
+// @access  Private
+router.post(
+  '/unlike/:id',
+  passport.authenticate('jwt', { session: false }),
+  (req, res) => {
+    Post.findById(req.params.id)
+      .then(post => {
+        // Check post exists. Returns 404 Not Found
+        if (post) {
+          // Get the remove index
+          const removeIndex = post.likes
+            .map(item => item.user.toString())
+            .indexOf(req.user.id);
+
+          // Check that the user has liked this post already.
+          if (removeIndex > -1) {
+            // Take out the like
+            post.likes.splice(removeIndex, 1);
+
+            // Save the post
+            post
+              .save()
+              .then(post => res.json(post))
+              .catch(makeFatalErrorHandler(res));
+          } else {
+            return res
+              .status(404)
+              .json({ message: 'You have not liked this post yet' });
+          }
+        } else {
+          return res
+            .status(404)
+            .json({ message: 'That post could not be found' });
+        }
+      })
+      .catch(makeFatalErrorHandler(res));
+  }
+);
+
 module.exports = router;
