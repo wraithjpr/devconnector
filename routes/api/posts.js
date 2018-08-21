@@ -3,7 +3,10 @@ const router = express.Router();
 const passport = require('passport');
 
 // Load utility modules
-const { makeFatalErrorHandler } = require('../../utils/error-handling');
+const {
+  makeFatalErrorHandler,
+  handleNotImplemented
+} = require('../../utils/error-handling');
 
 // Load input validation modules
 const validatePostInput = require('../../validation/post');
@@ -15,6 +18,43 @@ const Post = require('../../models/Post');
 // @desc    Test the posts route
 // @access  Public
 router.get('/test', (req, res) => res.json({ msg: 'Route /api/posts works.' }));
+
+// @route   GET api/posts/:id
+// @desc    Get a post by id
+// @access  Public
+router.get('/:id', (req, res) => {
+  Post.findById(req.params.id)
+    .then(post => {
+      // Check post exists. Returns the post or 404 Not Found
+      if (post) {
+        return res.json(post);
+      } else {
+        return res
+          .status(404)
+          .json({ message: 'That post could not be found' });
+      }
+    })
+    .catch(makeFatalErrorHandler(res));
+});
+
+// @route   GET api/posts
+// @desc    Get posts
+// @access  Public
+router.get('/', (req, res) => {
+  Post.find()
+    .sort({ date: -1 })
+    .then(posts => {
+      // Check posts exists. Returns the posts or 404 Not Found
+      if (posts && posts.length > 0) {
+        return res.json(posts);
+      } else {
+        return res
+          .status(404)
+          .json({ message: 'There are no posts available yet' });
+      }
+    })
+    .catch(makeFatalErrorHandler(res));
+});
 
 // @route   POST api/posts
 // @desc    Create a new post against the current user
@@ -41,6 +81,39 @@ router.post(
     new Post(postFields)
       .save()
       .then(post => res.json(post))
+      .catch(makeFatalErrorHandler(res));
+  }
+);
+
+// @route   DELETE api/posts/:id
+// @desc    Delete a post by id
+// @access  Private
+router.delete(
+  '/:id',
+  passport.authenticate('jwt', { session: false }),
+  (req, res) => {
+    Post.findById(req.params.id)
+      .then(post => {
+        // Check post exists. Returns 404 Not Found
+        if (post) {
+          // Check the users match - users can delete only their own posts. Returns 403 Forbidden.
+          if (req.user.id === post.user.toString()) {
+            // Delete the post
+            post
+              .remove()
+              .then(() => res.json({ success: true }))
+              .catch(makeFatalErrorHandler(res));
+          } else {
+            return res.status(403).json({
+              message: 'Permission denied. You may delete only your own posts'
+            });
+          }
+        } else {
+          return res
+            .status(404)
+            .json({ message: 'That post could not be found' });
+        }
+      })
       .catch(makeFatalErrorHandler(res));
   }
 );
