@@ -2,6 +2,10 @@ const express = require('express');
 const router = express.Router();
 const passport = require('passport');
 
+// Load literal value constants
+const { ERR_FATAL_SERVICE_FAULT } = require('../../config/errors');
+const { HTTP_500_INTERNAL_SERVER_ERROR } = require('../../config/http-codes');
+
 // Load input validation modules
 const validateProfileInput = require('../../validation/profile');
 const validateExperienceInput = require('../../validation/experience');
@@ -9,6 +13,23 @@ const validateEducationInput = require('../../validation/education');
 
 // Load models
 const Profile = require('../../models/Profile');
+
+// Error handler function factory
+function makeResponseErrorHandler(msg, httpCode, log) {
+  return function makeErrorHandler(res) {
+    return function handleError(err) {
+      log && log(err);
+      return res.status(httpCode).json({ error: msg });
+    };
+  };
+}
+
+// Error handlers
+const makeFatalErrorHandler = makeResponseErrorHandler(
+  ERR_FATAL_SERVICE_FAULT,
+  HTTP_500_INTERNAL_SERVER_ERROR,
+  console.log
+);
 
 // @route   GET api/profile/test
 // @desc    Test the profile route
@@ -38,12 +59,7 @@ router.get(
         // Return the profile
         return res.json(profile);
       })
-      .catch(err => {
-        // Returns 500 Internal Server Error
-        console.log(err);
-        errors.noProfile = "Unable to fetch user's profile";
-        return res.status(500).json(errors);
-      });
+      .catch(makeFatalErrorHandler(res));
   }
 );
 
@@ -65,12 +81,7 @@ router.get('/all', (req, res) => {
       // Return the list of profiles
       return res.json(profiles);
     })
-    .catch(err => {
-      // Returns 500 Internal Server Error
-      console.log(err);
-      errors.noProfile = 'Unable to fetch list of profiles';
-      return res.status(500).json(errors);
-    });
+    .catch(makeFatalErrorHandler(res));
 });
 
 // @route   GET api/profile/handle/:handle
@@ -91,12 +102,7 @@ router.get('/handle/:handle', (req, res) => {
       // Return the profile
       return res.json(profile);
     })
-    .catch(err => {
-      // Returns 500 Internal Server Error
-      console.log(err);
-      errors.noProfile = "Unable to fetch user's profile";
-      return res.status(500).json(errors);
-    });
+    .catch(makeFatalErrorHandler(res));
 });
 
 // @route   GET api/profile/user/:user_id
@@ -117,12 +123,7 @@ router.get('/user/:user_id', (req, res) => {
       // Return the profile
       return res.json(profile);
     })
-    .catch(err => {
-      // Returns 500 Internal Server Error
-      console.log(err);
-      errors.noProfile = "Unable to fetch user's profile";
-      return res.status(500).json(errors);
-    });
+    .catch(makeFatalErrorHandler(res));
 });
 
 // @route   POST api/profile
@@ -176,12 +177,7 @@ router.post(
             { new: true }
           )
             .then(profile => res.json(profile))
-            .catch(err => {
-              // Returns 500 Internal Server Error
-              console.log(err);
-              errors.noProfile = "Unable to update user's profile";
-              return res.status(500).json(errors);
-            });
+            .catch(makeFatalErrorHandler(res));
         } else {
           // Create
           // Check that the handle is available. Returns 400 Bad Request if handle is already in use by another.
@@ -198,33 +194,18 @@ router.post(
                 new Profile(profileFields)
                   .save()
                   .then(profile => res.json(profile))
-                  .catch(err => {
-                    // Returns 500 Internal Server Error
-                    console.log(err);
-                    errors.noProfile = "Unable to create user's profile";
-                    return res.status(500).json(errors);
-                  });
+                  .catch(makeFatalErrorHandler(res));
               }
             })
-            .catch(err => {
-              // Returns 500 Internal Server Error
-              console.log(err);
-              errors.noProfile = 'Unable to check handle is available';
-              return res.status(500).json(errors);
-            });
+            .catch(makeFatalErrorHandler(res));
         }
       })
-      .catch(err => {
-        // Returns 500 Internal Server Error
-        console.log(err);
-        errors.noProfile = "Unable to create user's profile";
-        return res.status(500).json(errors);
-      });
+      .catch(makeFatalErrorHandler(res));
   }
 );
 
 // @route   POST api/profile/experience
-// @desc    Add experience to a user profile
+// @desc    Add an experience item to the current user's profile
 // @access  Private
 router.post(
   '/experience',
@@ -259,29 +240,19 @@ router.post(
           profile
             .save()
             .then(profile => res.json(profile))
-            .catch(err => {
-              // Returns 500 Internal Server Error
-              console.log(err);
-              errors.profile = "Unable to add experience to user's profile";
-              return res.status(500).json(errors);
-            });
+            .catch(makeFatalErrorHandler(res));
         } else {
           // Returns 404 Not Found
           errors.noProfile = "Unable to find user's profile";
           return res.status(404).json(errors);
         }
       })
-      .catch(err => {
-        // Returns 500 Internal Server Error
-        console.log(err);
-        errors.noProfile = "Unable to find user's profile";
-        return res.status(500).json(errors);
-      });
+      .catch(makeFatalErrorHandler(res));
   }
 );
 
 // @route   POST api/profile/education
-// @desc    Add education to a user profile
+// @desc    Add education item to the current user's profile
 // @access  Private
 router.post(
   '/education',
@@ -317,24 +288,98 @@ router.post(
           profile
             .save()
             .then(profile => res.json(profile))
-            .catch(err => {
-              // Returns 500 Internal Server Error
-              console.log(err);
-              errors.profile = "Unable to add education to user's profile";
-              return res.status(500).json(errors);
-            });
+            .catch(makeFatalErrorHandler(res));
         } else {
           // Returns 404 Not Found
           errors.noProfile = "Unable to find user's profile";
           return res.status(404).json(errors);
         }
       })
-      .catch(err => {
-        // Returns 500 Internal Server Error
-        console.log(err);
-        errors.noProfile = "Unable to find user's profile";
-        return res.status(500).json(errors);
-      });
+      .catch(makeFatalErrorHandler(res));
+  }
+);
+
+// @route   DELETE api/profile/experience/:exp_id
+// @desc    Delete an experience item from the current user's profile
+// @access  Private
+router.delete(
+  '/experience/:exp_id',
+  passport.authenticate('jwt', { session: false }),
+  (req, res) => {
+    const errors = {};
+
+    // Find profile by user id
+    Profile.findOne({ user: req.user.id })
+      .then(profile => {
+        // Check that profile is found
+        if (profile) {
+          // Get remove index
+          const removeIndex = profile.experience
+            .map(item => item.id)
+            .indexOf(req.params.exp_id);
+
+          if (removeIndex !== -1) {
+            // Splice out of array
+            profile.experience.splice(removeIndex, 1);
+
+            // Save the profile
+            profile
+              .save()
+              .then(profile => res.json(profile))
+              .catch(makeFatalErrorHandler(res));
+          } else {
+            // No need for an error if not found, as it's already gone and delete should be idempotent.
+            return res.json(profile);
+          }
+        } else {
+          // Returns 404 Not Found
+          errors.noProfile = "Unable to find user's profile";
+          return res.status(404).json(errors);
+        }
+      })
+      .catch(makeFatalErrorHandler(res));
+  }
+);
+
+// @route   DELETE api/profile/education/:edu_id
+// @desc    Delete an education item from the current user's profile
+// @access  Private
+router.delete(
+  '/education/:edu_id',
+  passport.authenticate('jwt', { session: false }),
+  (req, res) => {
+    const errors = {};
+
+    // Find profile by user id
+    Profile.findOne({ user: req.user.id })
+      .then(profile => {
+        // Check that profile is found
+        if (profile) {
+          // Get remove index
+          const removeIndex = profile.education
+            .map(item => item.id)
+            .indexOf(req.params.edu_id);
+
+          if (removeIndex !== -1) {
+            // Splice out of array
+            profile.education.splice(removeIndex, 1);
+
+            // Save the profile
+            profile
+              .save()
+              .then(profile => res.json(profile))
+              .catch(makeFatalErrorHandler(res));
+          } else {
+            // No need for an error if not found, as it's already gone and delete should be idempotent.
+            return res.json(profile);
+          }
+        } else {
+          // Returns 404 Not Found
+          errors.noProfile = "Unable to find user's profile";
+          return res.status(404).json(errors);
+        }
+      })
+      .catch(makeFatalErrorHandler(res));
   }
 );
 

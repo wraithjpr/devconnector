@@ -1,0 +1,18 @@
+module.exports = {
+  // 1xx Continue
+  HTTP_102_PROCESSING: 102,
+  // 2xx Success
+  HTTP_200_OK: 200,
+  HTTP_201_CREATED: 201,
+  HTTP_202_ACCEPTED: 202,
+  HTTP_204_NO_CONTENT: 204,
+  HTTP_205_RESET_CONTENT: 205,
+  // 4xx Client Errors
+  HTTP_400_BAD_REQUEST: 400, // Validation
+  HTTP_401_UNAUTHORIZED: 401, // Authenticatio
+  HTTP_403_FORBIDDEN: 403, // Permission
+  HTTP_404_NOT_FOUND: 404,
+  // 5xx Server Errors
+  HTTP_500_INTERNAL_SERVER_ERROR: 500,
+  HTTP_501_NOT_IMPLEMENTED: 501
+};
