@@ -1,0 +1,10 @@
+/*
+ *  This is a template for keys.js which should always be put in './config/sensitive/keys.js'.
+ *  Do not commit the real keys.js file to the repo to prevent it being published to GitHub.
+ *  See 'https://help.github.com/articles/removing-sensitive-data-from-a-repository/'.
+*/
+
+module.exports = {
+  mongoURI: "mongodb://<dbuser>:<dbpassword>@ds219832.mlab.com:19832/devconnector_jpw",
+  secretOrKey: ""
+};

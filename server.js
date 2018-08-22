@@ -11,7 +11,7 @@ const profile = require('./routes/api/profile');
 const users = require('./routes/api/users');
 
 // Connect to MongoDB via Mongoose using the URI in our config.
-const db = require('./config/keys').mongoURI;
+const db = require('./config/sensitive/keys').mongoURI;
 
 mongoose
   .connect(db)

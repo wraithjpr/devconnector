@@ -1,3 +1,7 @@
+# Sensitive config information not to go into GitHub, e.g. passwords, API keys, etc.
+/config/sensitive
+/config/keys.js
+
 # Logs
 logs
 *.log
@@ -47,3 +51,4 @@ dist
 
 # James' scratch javascript
 .scratch.js
+
