@@ -1,7 +1,7 @@
 const Validator = require('validator');
 const isEmpty = require('./is-empty');
 
-module.exports = function validatePostInput(data) {
+module.exports = function validateCommentInput(data) {
   let errors = {};
 
   // text is mandatory, non-blank, and between 6 and 1024 characters.
@@ -15,10 +15,10 @@ module.exports = function validatePostInput(data) {
 
   // text
   if (isEmpty(dataDefaulted.text)) {
-    errors.text = 'Posts must not be blank. Please fill in your post.';
+    errors.text = 'Comments must not be blank. Please fill in your comment.';
   } else {
     if (!Validator.isLength(dataDefaulted.text, { min: 6, max: 1024 })) {
-      errors.text = 'Posts must be between 6 and 1024 characters.';
+      errors.text = 'Comments must be between 6 and 1024 characters.';
     }
   }
 

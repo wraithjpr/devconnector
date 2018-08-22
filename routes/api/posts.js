@@ -10,6 +10,7 @@ const {
 
 // Load input validation modules
 const validatePostInput = require('../../validation/post');
+const validateCommentInput = require('../../validation/comment');
 
 // Load models
 const Post = require('../../models/Post');
@@ -195,6 +196,91 @@ router.post(
             return res
               .status(404)
               .json({ message: 'You have not liked this post yet' });
+          }
+        } else {
+          return res
+            .status(404)
+            .json({ message: 'That post could not be found' });
+        }
+      })
+      .catch(makeFatalErrorHandler(res));
+  }
+);
+
+// @route   POST api/posts/comment/:id
+// @desc    Comment on a post by id
+// @access  Private
+router.post(
+  '/comment/:id',
+  passport.authenticate('jwt', { session: false }),
+  (req, res) => {
+    Post.findById(req.params.id)
+      .then(post => {
+        // Check post exists. Returns 404 Not Found
+        if (post) {
+          // Validate input
+          let { isValid, data, errors } = validateCommentInput(req.body);
+
+          // Check validation, returns 400 Bad Request
+          if (!isValid) {
+            return res.status(400).json(errors);
+          }
+
+          // Construct the post
+          const commentFields = { user: req.user.id };
+
+          if (data.text) commentFields.text = data.text;
+          if (data.name) commentFields.name = data.name;
+          if (data.avatar) commentFields.avatar = data.avatar;
+
+          // Record the comment
+          post.comments.push(commentFields);
+
+          // Save the post
+          post
+            .save()
+            .then(post => res.json(post))
+            .catch(makeFatalErrorHandler(res));
+        } else {
+          return res
+            .status(404)
+            .json({ message: 'That post could not be found' });
+        }
+      })
+      .catch(makeFatalErrorHandler(res));
+  }
+);
+
+// @route   DELETE api/posts/unlike/:id/:comment_id
+// @desc    Remove a comment from a post by id
+// @access  Private
+router.delete(
+  '/comment/:id/:comment_id',
+  passport.authenticate('jwt', { session: false }),
+  (req, res) => {
+    Post.findById(req.params.id)
+      .then(post => {
+        // Check post exists. Returns 404 Not Found
+        if (post) {
+          // Get the remove index
+          const removeIndex = post.comments
+            .map(comment => comment._id.toString())
+            .indexOf(req.params.comment_id);
+
+          // Check that the user has liked this post already.
+          if (removeIndex > -1) {
+            // Take out the like
+            post.comments.splice(removeIndex, 1);
+
+            // Save the post
+            post
+              .save()
+              .then(post => res.json(post))
+              .catch(makeFatalErrorHandler(res));
+          } else {
+            return res
+              .status(404)
+              .json({ message: 'That comment could not be found' });
           }
         } else {
           return res
