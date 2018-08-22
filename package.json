@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "Social network for developers as the worked example from the Traversy Media Udemy course.",
   "main": "server.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wraithjpr/devconnector.git"
+  },
   "scripts": {
     "server": "nodemon server.js",
     "start": "node server.js",
