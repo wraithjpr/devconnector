@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import axios from 'axios';
 
 export default class Register extends Component {
   constructor() {
@@ -8,7 +9,7 @@ export default class Register extends Component {
       name: '',
       email: '',
       password: '',
-      password2: '',
+      passwordConfirm: '',
       errors: {}
     };
 
@@ -24,7 +25,18 @@ export default class Register extends Component {
     e.preventDefault();
 
     const newUser = Object.assign({}, this.state);
-    console.log(newUser);
+
+    axios
+      .post('/api/users/register', newUser)
+      .then(res => {
+        return console.log(`${res.status} ${res.statusText}`, res.data);
+      })
+      .catch(err =>
+        console.error(
+          `${err.response.status} ${err.response.statusText}`,
+          err.response.data
+        )
+      );
   }
 
   render() {
@@ -46,7 +58,6 @@ export default class Register extends Component {
                     name="name"
                     value={this.state.name}
                     onChange={this.onChange}
-                    required
                   />
                 </div>
                 <div className="form-group">
@@ -78,8 +89,8 @@ export default class Register extends Component {
                     type="password"
                     className="form-control form-control-lg"
                     placeholder="Confirm Password"
-                    name="password2"
-                    value={this.state.password2}
+                    name="passwordConfirm"
+                    value={this.state.passwordConfirm}
                     onChange={this.onChange}
                   />
                 </div>
