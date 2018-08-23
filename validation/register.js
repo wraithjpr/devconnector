@@ -40,7 +40,8 @@ module.exports = function validateRegisterInput(data) {
     errors.password = 'Password must be given.';
   } else {
     if (!Validator.isLength(dataDefaulted.password, { min: 8, max: 30 })) {
-      errors.password = 'Name must be between 2 and 30 characters in length.';
+      errors.password =
+        'Password must be between 8 and 30 characters in length.';
     }
   }
 
@@ -51,7 +52,7 @@ module.exports = function validateRegisterInput(data) {
     if (
       !Validator.equals(dataDefaulted.password, dataDefaulted.passwordConfirm)
     ) {
-      errors.password = 'The two passwords must match.';
+      errors.passwordConfirm = 'The two passwords must match.';
     }
   }
 
