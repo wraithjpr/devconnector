@@ -1,3 +1,4 @@
+import classnames from 'classnames';
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -18,8 +19,8 @@ class Login extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.auth) {
-      this.setState({ email: nextProps.auth.user.email });
+    if (nextProps.auth.isAuthenticated) {
+      this.props.history.push('/dashboard');
     }
     if (nextProps.errors) {
       this.setState({ errors: nextProps.errors });
@@ -35,10 +36,12 @@ class Login extends Component {
 
     const newLogin = Object.assign({}, this.state);
 
-    console.log(newLogin);
+    this.props.loginUser(newLogin);
   }
 
   render() {
+    const { errors } = this.state;
+
     return (
       <div className="container">
         <div className="row">
@@ -51,22 +54,32 @@ class Login extends Component {
               <div className="form-group">
                 <input
                   type="email"
-                  className="form-control form-control-lg"
+                  className={classnames('form-control form-control-lg', {
+                    'is-invalid': errors.email
+                  })}
                   placeholder="Email Address"
                   name="email"
                   value={this.state.email}
                   onChange={this.onChange}
                 />
+                {errors.email && (
+                  <div className="invalid-feedback">{errors.email}</div>
+                )}
               </div>
               <div className="form-group">
                 <input
                   type="password"
-                  className="form-control form-control-lg"
+                  className={classnames('form-control form-control-lg', {
+                    'is-invalid': errors.password
+                  })}
                   placeholder="Password"
                   name="password"
                   value={this.state.password}
                   onChange={this.onChange}
                 />
+                {errors.password && (
+                  <div className="invalid-feedback">{errors.password}</div>
+                )}
               </div>
               <input type="submit" className="btn btn-info btn-block mt-4" />
             </form>

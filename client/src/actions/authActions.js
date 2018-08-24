@@ -5,7 +5,6 @@ import setAuthToken from '../utils/setAuthToken';
 // Types
 import { GET_ERRORS } from './types';
 import { SET_CURRENT_USER } from './types';
-import { TEST_DISPATCH } from './types';
 
 // Register User
 export const registerUser = (userData, history) => dispatch => {
@@ -13,10 +12,6 @@ export const registerUser = (userData, history) => dispatch => {
     .post('/api/users/register', userData)
     .then(res => {
       console.log(`${res.status} ${res.statusText}`, res.data);
-      dispatch({
-        type: TEST_DISPATCH,
-        payload: res.data
-      });
       return history.push('/login');
     })
     .catch(err => {
