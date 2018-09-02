@@ -14,7 +14,10 @@ const users = require('./routes/api/users');
 const db = require('./config/sensitive/keys').mongoURI;
 
 mongoose
-  .connect(db)
+  .connect(
+    db,
+    { useNewUrlParser: true }
+  )
   .then(() => console.log('MongoDB connected.'))
   .catch(err => console.error(err));
 
